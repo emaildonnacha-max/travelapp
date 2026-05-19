@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Keniry Family Adventure 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #13161c;
+    --surface2: #1c2028;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0ebe3;
+    --muted: #6b7280;
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.15);
+    --green: #10b981;
+    --green-dim: rgba(16,185,129,0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+
+    --ireland: #166534;
+    --croatia: #9b1c1c;
+    --bosnia: #1e4d2b;
+    --slovenia: #1e3a5f;
+    --france: #4c1d95;
+    --italy: #78350f;
+    --switzerland: #7f1d1d;
+    --japan: #9f1239;
+    --transit: #1e293b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--bg); z-index: 999;
+    gap: 16px;
+  }
+  .load-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 900;
+    background: linear-gradient(135deg, #f59e0b, #f0ebe3);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .load-sub { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── HEADER ── */
+  #header {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(180deg, #0a0c10 0%, rgba(10,12,16,0.95) 100%);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 10px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700;
+    background: linear-gradient(135deg, #f59e0b, #f0ebe3);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-day { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .sync-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Quick day buttons */
+  .day-buttons {
+    display: flex; gap: 6px; overflow-x: auto;
+    padding-bottom: 2px; scrollbar-width: none;
+  }
+  .day-buttons::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px; font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .day-btn.active {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  .day-btn:active { transform: scale(0.95); }
+
+  /* ── MAIN CONTENT ── */
+  #content { padding: 12px 12px 80px; }
+
+  /* ── TRIP CARD ── */
+  .trip-card {
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .trip-card-header {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  .trip-card-header::after {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0; background: rgba(255,255,255,0.03);
+    transition: opacity 0.15s;
+  }
+  .trip-card-header:active::after { opacity: 1; }
+
+  .card-flag { font-size: 22px; flex-shrink: 0; }
+  .card-info { flex: 1; min-width: 0; }
+  .card-date {
+    font-size: 10px; color: rgba(255,255,255,0.45);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .card-location {
+    font-size: 15px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-badges { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+  .badge {
+    font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .badge-alert { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .badge-rest { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .badge-easy { background: rgba(251,191,36,0.15); color: #fcd34d; }
+  .badge-go { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .badge-peak { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+  .card-chevron { color: rgba(255,255,255,0.3); font-size: 12px; flex-shrink: 0; transition: transform 0.2s; }
+  .card-chevron.open { transform: rotate(180deg); }
+
+  /* ── EXPANDED DETAIL ── */
+  .card-detail { background: rgba(10,12,16,0.95); }
+
+  .detail-section {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .detail-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px; font-weight: 500;
+  }
+  .detail-row { display: flex; gap: 10px; margin-bottom: 4px; }
+  .detail-time {
+    font-size: 11px; color: var(--amber); font-weight: 600;
+    min-width: 50px; flex-shrink: 0; padding-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .detail-text { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; }
+  .detail-ref {
+    display: inline-block; margin-top: 4px;
+    font-size: 10px; color: #7c9cbf;
+    background: rgba(59,130,246,0.1);
+    border-radius: 4px; padding: 2px 7px;
+  }
+  .alert-row {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 8px; padding: 8px 10px; margin-bottom: 4px;
+    font-size: 12px; color: #fca5a5; line-height: 1.5;
+  }
+  .accom-block {
+    background: var(--surface2); border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .accom-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .accom-addr { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .accom-phone {
+    font-size: 11px; color: var(--blue);
+    text-decoration: none; display: block;
+  }
+  .weather-block {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 8px; padding: 8px 10px;
+    font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.5;
+  }
+  .rest-block {
+    border-radius: 8px; padding: 8px 10px;
+    font-size: 12px; line-height: 1.5;
+  }
+  .rest-red { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+  .rest-orange { background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.2); color: #fdba74; }
+  .rest-yellow { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2); color: #fcd34d; }
+  .rest-green { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+  .rest-blue { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #93c5fd; }
+
+  /* ── TABS ── */
+  #tab-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: rgba(10,12,16,0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    cursor: pointer; padding: 4px 0;
+    transition: all 0.15s;
+  }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .tab.active .tab-label { color: var(--amber); }
+  .tab.active .tab-icon { filter: drop-shadow(0 0 6px rgba(245,158,11,0.5)); }
+  .tab:active { transform: scale(0.9); }
+
+  /* ── BOOKINGS TAB ── */
+  .section-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700; margin-bottom: 12px;
+    background: linear-gradient(135deg, #f59e0b, #f0ebe3);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .booking-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .booking-category {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--amber); font-weight: 600; margin-bottom: 4px;
+  }
+  .booking-what { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .booking-ref { font-size: 11px; color: var(--muted); }
+  .booking-date { font-size: 11px; color: var(--blue); margin-top: 2px; }
+  .booking-notes { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .booking-urgent { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+  .booking-urgent .booking-category { color: #fca5a5; }
+  .search-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 14px; color: var(--text);
+    width: 100%; margin-bottom: 12px;
+    font-family: 'DM Sans', sans-serif; outline: none;
+  }
+  .search-box::placeholder { color: var(--muted); }
+  .search-box:focus { border-color: var(--amber); }
+
+  /* ── EMERGENCY TAB ── */
+  .emergency-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .emergency-card.urgent {
+    border-color: rgba(239,68,68,0.4);
+    background: rgba(239,68,68,0.06);
+  }
+  .emergency-who { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .emergency-number {
+    font-size: 16px; font-weight: 700; color: var(--amber);
+    display: block; margin: 4px 0; letter-spacing: 0.5px;
+    text-decoration: none;
+  }
+  .emergency-note { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .emergency-category {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); font-weight: 500; margin-bottom: 4px;
+  }
+
+  /* ── MORE TAB ── */
+  .more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .more-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 14px;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .more-card:active { transform: scale(0.97); border-color: var(--amber); }
+  .more-card-icon { font-size: 28px; }
+  .more-card-title { font-size: 13px; font-weight: 600; }
+  .more-card-sub { font-size: 11px; color: var(--muted); }
+
+  /* Sub pages */
+  .sub-page { display: none; }
+  .sub-page.active { display: block; }
+  .sub-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px;
+    font-size: 13px; cursor: pointer; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .back-btn:active { transform: scale(0.95); }
+
+  .info-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .info-card-dest { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; }
+  .info-card-item { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .info-card-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .info-card-tip {
+    margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.6);
+    background: var(--surface2); border-radius: 6px; padding: 5px 8px;
+    line-height: 1.4; font-style: italic;
+  }
+
+  /* Photo card */
+  .photo-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .photo-type { font-size: 16px; margin-bottom: 4px; }
+  .photo-subject { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .photo-lens {
+    display: inline-block; background: var(--amber-dim);
+    border: 1px solid rgba(245,158,11,0.3); border-radius: 6px;
+    padding: 2px 8px; font-size: 11px; color: var(--amber);
+    font-weight: 600; margin-bottom: 4px;
+  }
+  .photo-settings { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .photo-spot { font-size: 11px; color: var(--blue); margin-top: 4px; }
+  .photo-time { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .photo-priority { border-color: rgba(239,68,68,0.3); }
+
+  /* Country filter pills */
+  .filter-pills {
+    display: flex; gap: 6px; overflow-x: auto;
+    padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: none;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 4px 10px; font-size: 11px; color: var(--muted);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .pill.active { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+  .pill:active { transform: scale(0.95); }
+
+  /* Utility */
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+  .count-badge {
+    background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 10px; padding: 1px 7px;
+    font-size: 11px; color: var(--amber); font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-title">Keniry Adventure</div>
+  <div class="load-sub">Loading your trip data…</div>
+  <div class="spinner"></div>
+</div>
+
+<div id="app" style="display:none">
+
+  <div id="header">
+    <div class="header-top">
+      <div>
+        <div class="header-title">Family Adventure 2026</div>
+        <div class="header-day" id="header-day">Loading…</div>
+      </div>
+      <div id="sync-dot" class="sync-dot loading"></div>
+    </div>
+    <div class="day-buttons" id="day-buttons">
+      <button class="day-btn active" onclick="showDays(0,1,'Today')">Today</button>
+      <button class="day-btn" onclick="showDays(1,1,'Tomorrow')">Tomorrow</button>
+      <button class="day-btn" onclick="showDays(0,3,'Next 3 days')">3 Days</button>
+      <button class="day-btn" onclick="showDays(0,5,'Next 5 days')">5 Days</button>
+      <button class="day-btn" onclick="showDays(0,999,'Full trip')">Full Trip</button>
+    </div>
+  </div>
+
+  <!-- ITINERARY TAB -->
+  <div id="tab-itinerary" class="tab-content">
+    <div id="content"></div>
+  </div>
+
+  <!-- BOOKINGS TAB -->
+  <div id="tab-bookings" class="tab-content" style="display:none; padding:12px 12px 80px;">
+    <div class="section-header">Bookings</div>
+    <input class="search-box" id="booking-search" placeholder="Search flights, hotels, refs…" oninput="filterBookings(this.value)">
+    <div id="bookings-list"></div>
+  </div>
+
+  <!-- EMERGENCY TAB -->
+  <div id="tab-emergency" class="tab-content" style="display:none; padding:12px 12px 80px;">
+    <div class="section-header">Emergency 🚨</div>
+    <div id="emergency-list"></div>
+  </div>
+
+  <!-- MORE TAB -->
+  <div id="tab-more" class="tab-content" style="display:none; padding:12px 12px 80px;">
+    <div id="more-home">
+      <div class="section-header">More</div>
+      <div class="more-grid">
+        <div class="more-card" onclick="openSub('food')">
+          <div class="more-card-icon">🍽️</div>
+          <div class="more-card-title">Food Guide</div>
+          <div class="more-card-sub">Must-try dishes by country</div>
+        </div>
+        <div class="more-card" onclick="openSub('walks')">
+          <div class="more-card-icon">🗺️</div>
+          <div class="more-card-title">Walks & Rides</div>
+          <div class="more-card-sub">Perfect routes, stop by stop</div>
+        </div>
+        <div class="more-card" onclick="openSub('photos')">
+          <div class="more-card-icon">📷</div>
+          <div class="more-card-title">Photography</div>
+          <div class="more-card-sub">Shot goals & settings</div>
+        </div>
+        <div class="more-card" onclick="openSub('souvenirs')">
+          <div class="more-card-icon">🎁</div>
+          <div class="more-card-title">Souvenirs</div>
+          <div class="more-card-sub">Gifts worth buying</div>
+        </div>
+        <div class="more-card" onclick="openSub('activities')">
+          <div class="more-card-icon">🎯</div>
+          <div class="more-card-title">Activities</div>
+          <div class="more-card-sub">Ideas for every destination</div>
+        </div>
+        <div class="more-card" onclick="openSub('rest')">
+          <div class="more-card-icon">😴</div>
+          <div class="more-card-title">Rest Planner</div>
+          <div class="more-card-sub">Fatigue guide by day</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub pages -->
+    <div id="sub-food" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Food Guide</div>
+      </div>
+      <div class="filter-pills" id="food-filter"></div>
+      <div id="food-list"></div>
+    </div>
+    <div id="sub-walks" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Walks & Rides</div>
+      </div>
+      <div class="filter-pills" id="walks-filter"></div>
+      <div id="walks-list"></div>
+    </div>
+    <div id="sub-photos" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Photography</div>
+      </div>
+      <div class="filter-pills" id="photos-filter"></div>
+      <div id="photos-list"></div>
+    </div>
+    <div id="sub-souvenirs" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Souvenirs</div>
+      </div>
+      <div class="filter-pills" id="souvenirs-filter"></div>
+      <div id="souvenirs-list"></div>
+    </div>
+    <div id="sub-activities" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Activities</div>
+      </div>
+      <div class="filter-pills" id="activities-filter"></div>
+      <div id="activities-list"></div>
+    </div>
+    <div id="sub-rest" class="sub-page">
+      <div class="sub-header">
+        <button class="back-btn" onclick="closeSub()">← Back</button>
+        <div class="section-header" style="margin:0">Rest Planner</div>
+      </div>
+      <div id="rest-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-bar">
+    <div class="tab active" onclick="switchTab('itinerary')" id="t-itinerary">
+      <div class="tab-icon">📅</div>
+      <div class="tab-label">Trip</div>
+    </div>
+    <div class="tab" onclick="switchTab('bookings')" id="t-bookings">
+      <div class="tab-icon">🎫</div>
+      <div class="tab-label">Bookings</div>
+    </div>
+    <div class="tab" onclick="switchTab('emergency')" id="t-emergency">
+      <div class="tab-icon">🚨</div>
+      <div class="tab-label">SOS</div>
+    </div>
+    <div class="tab" onclick="switchTab('more')" id="t-more">
+      <div class="tab-icon">✦</div>
+      <div class="tab-label">More</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1xMFYTY9DgQqkDxsnOzSqeqtn0putgXQCik9EGtEuqww';
+const API_KEY = 'AIzaSyDBKT3z13T5GKxbMhfk5xkYNOoR8F5TDCo'; // reusing Firebase API key for Sheets
+
+// Sheet tab names → indices
+const SHEETS = {
+  itinerary: 'ITINERARY',
+  bookings: 'BOOKINGS',
+  emergency: "'EMERGENCY & CONTACTS'",
+  food: 'FOOD',
+  walks: "'WALKS & RIDES'",
+  photos: 'PHOTOGRAPHY',
+  souvenirs: "'SOUVENIRS & GIFTS'",
+  activities: 'ACTIVITIES',
+};
+
+let allData = {};
+let currentDayOffset = 0;
+let currentDayCount = 1;
+let currentLabel = 'Today';
+let expandedCards = new Set();
+
+// Trip start date
+const TRIP_START = new Date('2026-05-27');
+
+async function fetchSheet(name) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${name}?key=${API_KEY}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Failed to fetch ${name}: ${r.status}`);
+  const d = await r.json();
+  return d.values || [];
+}
+
+async function loadAllData() {
+  try {
+    const [itin, bookings, emergency, food, walks, photos, souvenirs, activities] = await Promise.all([
+      fetchSheet(SHEETS.itinerary),
+      fetchSheet(SHEETS.bookings),
+      fetchSheet(SHEETS.emergency),
+      fetchSheet(SHEETS.food),
+      fetchSheet(SHEETS.walks),
+      fetchSheet(SHEETS.photos),
+      fetchSheet(SHEETS.souvenirs),
+      fetchSheet(SHEETS.activities),
+    ]);
+    allData = { itin, bookings, emergency, food, walks, photos, souvenirs, activities };
+    document.getElementById('sync-dot').className = 'sync-dot';
+  } catch(e) {
+    console.error(e);
+    document.getElementById('sync-dot').className = 'sync-dot error';
+  }
+}
+
+function getCountryColor(country) {
+  const c = (country || '').toLowerCase();
+  if (c.includes('ireland')) return '#166534';
+  if (c.includes('croatia')) return '#9b1c1c';
+  if (c.includes('bosnia')) return '#1e4d2b';
+  if (c.includes('slovenia')) return '#1e3a5f';
+  if (c.includes('france')) return '#4c1d95';
+  if (c.includes('italy')) return '#78350f';
+  if (c.includes('switzerland')) return '#7f1d1d';
+  if (c.includes('japan')) return '#9f1239';
+  return '#1e293b';
+}
+
+function getRestClass(restText) {
+  if (!restText) return '';
+  if (restText.includes('MUST REST') || restText.includes('🔴')) return 'rest-red';
+  if (restText.includes('TAKE IT EASY') || restText.includes('🟠')) return 'rest-orange';
+  if (restText.includes('MODERATE') || restText.includes('🟡')) return 'rest-yellow';
+  if (restText.includes('GO FOR IT') || restText.includes('🟢')) return 'rest-green';
+  if (restText.includes('PEAK') || restText.includes('⚡')) return 'rest-blue';
+  return '';
+}
+
+function getRestBadge(restText) {
+  if (!restText) return '';
+  if (restText.includes('MUST REST') || restText.includes('🔴')) return '<span class="badge badge-rest">Must rest</span>';
+  if (restText.includes('TAKE IT EASY') || restText.includes('🟠')) return '<span class="badge badge-easy">Take it easy</span>';
+  if (restText.includes('MODERATE') || restText.includes('🟡')) return '';
+  if (restText.includes('GO FOR IT') || restText.includes('🟢')) return '<span class="badge badge-go">Go for it</span>';
+  if (restText.includes('PEAK') || restText.includes('⚡')) return '<span class="badge badge-peak">⚡ Peak day</span>';
+  return '';
+}
+
+function showDays(offset, count, label) {
+  currentDayOffset = offset;
+  currentDayCount = count;
+  currentLabel = label;
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderItinerary();
+}
+
+function getTodayDayNumber() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const start = new Date(TRIP_START);
+  start.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000);
+  return diff + 1; // day 1 = 27 May
+}
+
+function renderItinerary() {
+  const rows = allData.itin || [];
+  if (!rows.length) { document.getElementById('content').innerHTML = '<div class="empty">No itinerary data</div>'; return; }
+
+  const header = rows[0];
+  const dataRows = rows.slice(1).filter(r => r[0] && r[1] && r[1] !== 'DAY');
+
+  const todayDay = getTodayDayNumber();
+  const startDay = todayDay + currentDayOffset;
+  const endDay = startDay + currentDayCount;
+
+  let filtered = dataRows;
+  if (currentDayCount < 999) {
+    filtered = dataRows.filter(r => {
+      const day = parseInt(r[1]);
+      return !isNaN(day) && day >= startDay && day < endDay;
+    });
+  }
+
+  if (!filtered.length) {
+    document.getElementById('content').innerHTML = '<div class="empty">You\'re not on the road yet! 🗺️<br><br>Trip starts 27 May 2026</div>';
+    return;
+  }
+
+  let html = '';
+  filtered.forEach((row, i) => {
+    const [date, day, country, location, transport, localTime, brisbaneTime, accom, ref, alerts, weather, rest] = [...row, ...Array(12).fill('')];
+    const id = `card-${i}`;
+    const color = getCountryColor(country);
+    const hasAlert = alerts && alerts.trim();
+    const restBadge = getRestBadge(rest);
+    const isPast = parseInt(day) < todayDay;
+    const isToday = parseInt(day) === todayDay;
+
+    html += `
+    <div class="trip-card" id="${id}" style="opacity:${isPast?0.45:1}">
+      <div class="trip-card-header" style="background:linear-gradient(135deg,${color}cc,${color}66)" onclick="toggleCard('${id}')">
+        <div class="card-flag">${getFlagEmoji(country)}</div>
+        <div class="card-info">
+          <div class="card-date">${date}${isToday?' · TODAY':''} · Day ${day}</div>
+          <div class="card-location">${location}</div>
+          <div class="card-badges">
+            ${hasAlert ? '<span class="badge badge-alert">⚠️ Alert</span>' : ''}
+            ${restBadge}
+          </div>
+        </div>
+        <div class="card-chevron ${expandedCards.has(id)?'open':''}" id="chev-${id}">▼</div>
+      </div>
+      <div class="card-detail" id="detail-${id}" style="display:${expandedCards.has(id)?'block':'none'}">
+        ${transport ? `
+        <div class="detail-section">
+          <div class="detail-label">Transport</div>
+          <div class="detail-text">${transport}</div>
+        </div>` : ''}
+        ${(localTime || brisbaneTime) ? `
+        <div class="detail-section">
+          <div class="detail-label">Times</div>
+          ${localTime ? `<div class="detail-row"><div class="detail-time">Local</div><div class="detail-text">${localTime}</div></div>` : ''}
+          ${brisbaneTime ? `<div class="detail-row"><div class="detail-time">BNE</div><div class="detail-text" style="color:var(--muted)">${brisbaneTime}</div></div>` : ''}
+        </div>` : ''}
+        ${accom ? `
+        <div class="detail-section">
+          <div class="detail-label">Accommodation</div>
+          <div class="accom-block">
+            <div class="accom-name">${accom.split('\n')[0]}</div>
+            ${accom.split('\n')[1] ? `<div class="accom-addr">${accom.split('\n').slice(1).join(', ')}</div>` : ''}
+            ${ref ? `<a class="accom-phone" href="tel:${extractPhone(ref)}">${ref}</a>` : ''}
+          </div>
+        </div>` : ''}
+        ${hasAlert ? `
+        <div class="detail-section">
+          <div class="detail-label">⚠️ Alerts</div>
+          <div class="alert-row">${alerts}</div>
+        </div>` : ''}
+        ${weather ? `
+        <div class="detail-section">
+          <div class="detail-label">Weather</div>
+          <div class="weather-block">${weather}</div>
+        </div>` : ''}
+        ${rest ? `
+        <div class="detail-section">
+          <div class="detail-label">Energy</div>
+          <div class="rest-block ${getRestClass(rest)}">${rest}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function getFlagEmoji(country) {
+  const c = (country||'').toLowerCase();
+  if (c.includes('ireland')) return '🇮🇪';
+  if (c.includes('croatia')) return '🇭🇷';
+  if (c.includes('bosnia')) return '🇧🇦';
+  if (c.includes('slovenia')) return '🇸🇮';
+  if (c.includes('france')) return '🇫🇷';
+  if (c.includes('italy')) return '🇮🇹';
+  if (c.includes('switzerland')) return '🇨🇭';
+  if (c.includes('japan')) return '🇯🇵';
+  if (c.includes('australia') || c.includes('home')) return '🇦🇺';
+  return '✈️';
+}
+
+function extractPhone(ref) {
+  const match = ref.match(/\+[\d\s]+/);
+  return match ? match[0].replace(/\s/g,'') : '';
+}
+
+function toggleCard(id) {
+  const detail = document.getElementById('detail-' + id);
+  const chev = document.getElementById('chev-' + id);
+  if (expandedCards.has(id)) {
+    expandedCards.delete(id);
+    detail.style.display = 'none';
+    chev.classList.remove('open');
+  } else {
+    expandedCards.add(id);
+    detail.style.display = 'block';
+    chev.classList.add('open');
+  }
+}
+
+function renderBookings() {
+  const rows = allData.bookings || [];
+  const dataRows = rows.slice(1).filter(r => r[0] && !r[0].startsWith('──'));
+  let html = '';
+  dataRows.forEach(row => {
+    const [cat, what, provider, ref, date, notes] = [...row, ...Array(6).fill('')];
+    const isUrgent = (notes||'').includes('⚠️ NOT BOOKED') || (what||'').includes('CANCEL');
+    html += `
+    <div class="booking-card ${isUrgent?'booking-urgent':''}">
+      <div class="booking-category">${cat}</div>
+      <div class="booking-what">${what}</div>
+      ${ref ? `<div class="booking-ref">${ref}</div>` : ''}
+      ${date ? `<div class="booking-date">${date}</div>` : ''}
+      ${notes ? `<div class="booking-notes">${notes}</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('bookings-list').innerHTML = html || '<div class="empty">No bookings</div>';
+  window._bookingsHTML = html;
+}
+
+function filterBookings(q) {
+  if (!q) { document.getElementById('bookings-list').innerHTML = window._bookingsHTML; return; }
+  const rows = allData.bookings || [];
+  const dataRows = rows.slice(1).filter(r => r[0] && !r[0].startsWith('──'));
+  const ql = q.toLowerCase();
+  let html = '';
+  dataRows.forEach(row => {
+    if (row.join(' ').toLowerCase().includes(ql)) {
+      const [cat, what, provider, ref, date, notes] = [...row, ...Array(6).fill('')];
+      const isUrgent = (notes||'').includes('⚠️ NOT BOOKED');
+      html += `
+      <div class="booking-card ${isUrgent?'booking-urgent':''}">
+        <div class="booking-category">${cat}</div>
+        <div class="booking-what">${what}</div>
+        ${ref ? `<div class="booking-ref">${ref}</div>` : ''}
+        ${date ? `<div class="booking-date">${date}</div>` : ''}
+        ${notes ? `<div class="booking-notes">${notes}</div>` : ''}
+      </div>`;
+    }
+  });
+  document.getElementById('bookings-list').innerHTML = html || '<div class="empty">No results</div>';
+}
+
+function renderEmergency() {
+  const rows = allData.emergency || [];
+  const dataRows = rows.slice(2).filter(r => r[0] && !r[0].startsWith('──'));
+  let html = '';
+  let currentCat = '';
+  dataRows.forEach(row => {
+    const [cat, who, number, when, addr] = [...row, ...Array(5).fill('')];
+    if (cat && cat !== currentCat) {
+      currentCat = cat;
+    }
+    const isUrgent = cat === 'Emergency' || cat === 'Embassy';
+    const phone = number && (number.includes('Tel:') || number.match(/^[\d\+]/)) ? number.replace('Tel:','').trim() : '';
+    html += `
+    <div class="emergency-card ${isUrgent?'urgent':''}">
+      <div class="emergency-category">${cat}</div>
+      <div class="emergency-who">${who}</div>
+      ${phone ? `<a class="emergency-number" href="tel:${phone.replace(/[\s\-\(\)]/g,'')}">${phone}</a>` : ''}
+      ${when ? `<div class="emergency-note">${when}</div>` : ''}
+      ${addr ? `<div class="emergency-note" style="margin-top:3px;color:rgba(255,255,255,0.4)">${addr}</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('emergency-list').innerHTML = html;
+}
+
+function renderFilteredList(containerId, filterId, rows, renderFn, getCat) {
+  const dataRows = rows.slice(1).filter(r => r[0] && !r[0].startsWith('══') && !r[0].startsWith('──'));
+  const cats = ['All', ...new Set(dataRows.map(r => getCat(r)).filter(Boolean))];
+  let activeCat = 'All';
+
+  const filterEl = document.getElementById(filterId);
+  filterEl.innerHTML = cats.map(c => `<div class="pill ${c==='All'?'active':''}" onclick="filterList('${filterId}','${containerId}',this,'${c}')">${c}</div>`).join('');
+
+  document.getElementById(containerId).innerHTML = dataRows.map(r => renderFn(r)).join('');
+  window[`_${containerId}_data`] = dataRows;
+  window[`_${containerId}_renderFn`] = renderFn;
+  window[`_${containerId}_getCat`] = getCat;
+}
+
+window.filterList = function(filterId, containerId, el, cat) {
+  document.querySelectorAll(`#${filterId} .pill`).forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const data = window[`_${containerId}_data`];
+  const renderFn = window[`_${containerId}_renderFn`];
+  const getCat = window[`_${containerId}_getCat`];
+  const filtered = cat === 'All' ? data : data.filter(r => getCat(r) === cat);
+  document.getElementById(containerId).innerHTML = filtered.map(r => renderFn(r)).join('') || '<div class="empty">No results</div>';
+};
+
+function renderFood() {
+  const rows = allData.food || [];
+  renderFilteredList('food-list', 'food-filter', rows,
+    row => {
+      const [dest, item, cheap, mustdo, avoid, tips] = [...row, ...Array(6).fill('')];
+      return `<div class="info-card">
+        <div class="info-card-dest">${dest}</div>
+        <div class="info-card-item">${item}</div>
+        ${cheap ? `<div class="info-card-detail">💚 Cheap: ${cheap}</div>` : ''}
+        ${mustdo ? `<div class="info-card-detail" style="color:var(--amber);margin-top:4px">⭐ ${mustdo}</div>` : ''}
+        ${avoid ? `<div class="info-card-detail" style="color:#fca5a5;margin-top:4px">✗ ${avoid}</div>` : ''}
+        ${tips ? `<div class="info-card-tip">${tips}</div>` : ''}
+      </div>`;
+    },
+    row => {
+      const d = (row[0]||'').split('—')[0].replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim();
+      return d.split(' ')[0] || 'General';
+    }
+  );
+}
+
+function renderWalks() {
+  const rows = allData.walks || [];
+  let html = '';
+  let currentRoute = '';
+  const dataRows = rows.filter(r => r[0]);
+  dataRows.forEach(row => {
+    const [dest, time, stop, what, duration, food, notes] = [...row, ...Array(7).fill('')];
+    if (stop && stop.startsWith('═')) {
+      currentRoute = stop.replace(/═/g,'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim();
+      html += `<div style="margin:16px 0 8px;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:0.5px;padding:8px 12px;background:var(--amber-dim);border-radius:8px;border-left:3px solid var(--amber)">${currentRoute}</div>`;
+    } else if (stop) {
+      html += `<div class="info-card" style="margin-bottom:6px">
+        ${time ? `<div style="font-size:11px;color:var(--amber);font-weight:600;margin-bottom:4px">${time}</div>` : ''}
+        <div class="info-card-item">${stop}</div>
+        ${what ? `<div class="info-card-detail">${what}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          ${duration ? `<span style="font-size:10px;background:var(--surface2);padding:2px 7px;border-radius:10px;color:var(--muted)">⏱ ${duration}</span>` : ''}
+          ${food ? `<span style="font-size:10px;background:var(--green-dim);padding:2px 7px;border-radius:10px;color:#6ee7b7">🍴 ${food}</span>` : ''}
+        </div>
+        ${notes ? `<div class="info-card-tip">${notes}</div>` : ''}
+      </div>`;
+    }
+  });
+  document.getElementById('walks-list').innerHTML = html || '<div class="empty">No walks data</div>';
+  document.getElementById('walks-filter').style.display = 'none';
+}
+
+function renderPhotos() {
+  const rows = allData.photos || [];
+  renderFilteredList('photos-list', 'photos-filter', rows,
+    row => {
+      const [loc, type, subject, bestTime, lens, settings, spot, done, notes] = [...row, ...Array(9).fill('')];
+      const isPriority = (notes||'').includes('🔴');
+      return `<div class="photo-card ${isPriority?'photo-priority':''}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div class="photo-type">${type||''}</div>
+          ${isPriority ? '<span style="font-size:10px;background:rgba(239,68,68,0.2);color:#fca5a5;padding:2px 7px;border-radius:10px;font-weight:600">🔴 Priority</span>' : ''}
+        </div>
+        <div class="photo-subject">${subject}</div>
+        ${lens ? `<div class="photo-lens">${lens}</div>` : ''}
+        ${settings ? `<div class="photo-settings">${settings}</div>` : ''}
+        ${bestTime ? `<div class="photo-time">⏰ ${bestTime}</div>` : ''}
+        ${spot ? `<div class="photo-spot">📍 ${spot}</div>` : ''}
+        ${notes&&!notes.includes('🔴') ? `<div class="info-card-tip">${notes}</div>` : ''}
+      </div>`;
+    },
+    row => (row[0]||'').split('/')[0].split('(')[0].trim() || 'General'
+  );
+}
+
+function renderSouvenirs() {
+  const rows = allData.souvenirs || [];
+  renderFilteredList('souvenirs-list', 'souvenirs-filter', rows,
+    row => {
+      const [country, item, forWho, cost, where, why, bought, notes] = [...row, ...Array(8).fill('')];
+      const isPriority = (why||'').includes('🔴') || (notes||'').includes('🔴');
+      return `<div class="info-card ${isPriority?'photo-priority':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div class="info-card-item" style="flex:1">${item}</div>
+          ${cost ? `<span style="font-size:11px;font-weight:700;color:var(--amber);margin-left:8px;flex-shrink:0">${cost}</span>` : ''}
+        </div>
+        ${forWho ? `<div style="font-size:11px;color:var(--blue);margin-bottom:4px">For: ${forWho}</div>` : ''}
+        ${where ? `<div class="info-card-detail">📍 ${where}</div>` : ''}
+        ${why ? `<div class="info-card-tip">${why}</div>` : ''}
+      </div>`;
+    },
+    row => (row[0]||'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim() || 'General'
+  );
+}
+
+function renderActivities() {
+  const rows = allData.activities || [];
+  renderFilteredList('activities-list', 'activities-filter', rows,
+    row => {
+      const [dest, activity, kids, cost, advance, notes] = [...row, ...Array(6).fill('')];
+      return `<div class="info-card">
+        <div class="info-card-dest">${dest}</div>
+        <div class="info-card-item">${activity}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          ${kids ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--green-dim);color:#6ee7b7">${kids}</span>` : ''}
+          ${cost ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--amber-dim);color:var(--amber)">${cost}</span>` : ''}
+          ${advance && advance.toLowerCase().includes('yes') ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--red-dim);color:#fca5a5">Book ahead</span>` : ''}
+        </div>
+        ${notes ? `<div class="info-card-tip">${notes}</div>` : ''}
+      </div>`;
+    },
+    row => (row[0]||'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵|\s+\(.*?\)/g,'').trim().split(' ')[0] || 'General'
+  );
+}
+
+function renderRest() {
+  const rows = allData.itin || [];
+  const dataRows = rows.slice(1).filter(r => r[1] && r[1] !== 'DAY' && r[11]);
+  let html = '';
+  dataRows.forEach(row => {
+    const [date, day, country, location,,,,,,, weather, rest] = [...row, ...Array(12).fill('')];
+    const restClass = getRestClass(rest);
+    html += `<div class="info-card" style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${date} · Day ${day}</div>
+        <div style="font-size:10px;color:var(--muted)">${getFlagEmoji(country)}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">${location}</div>
+      ${rest ? `<div class="rest-block ${restClass}" style="font-size:12px">${rest}</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('rest-list').innerHTML = html || '<div class="empty">No data</div>';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  document.getElementById('t-' + name).classList.add('active');
+
+  if (name === 'bookings' && !window._bookingsRendered) {
+    renderBookings();
+    window._bookingsRendered = true;
+  }
+  if (name === 'emergency' && !window._emergencyRendered) {
+    renderEmergency();
+    window._emergencyRendered = true;
+  }
+}
+
+function openSub(name) {
+  document.getElementById('more-home').style.display = 'none';
+  document.querySelectorAll('.sub-page').forEach(s => s.classList.remove('active'));
+  document.getElementById('sub-' + name).classList.add('active');
+
+  if (name === 'food' && !window._foodRendered) { renderFood(); window._foodRendered = true; }
+  if (name === 'walks' && !window._walksRendered) { renderWalks(); window._walksRendered = true; }
+  if (name === 'photos' && !window._photosRendered) { renderPhotos(); window._photosRendered = true; }
+  if (name === 'souvenirs' && !window._souvenirsRendered) { renderSouvenirs(); window._souvenirsRendered = true; }
+  if (name === 'activities' && !window._activitiesRendered) { renderActivities(); window._activitiesRendered = true; }
+  if (name === 'rest' && !window._restRendered) { renderRest(); window._restRendered = true; }
+}
+
+function closeSub() {
+  document.querySelectorAll('.sub-page').forEach(s => s.classList.remove('active'));
+  document.getElementById('more-home').style.display = 'block';
+}
+
+function updateHeaderDay() {
+  const today = new Date();
+  const dayNum = getTodayDayNumber();
+  const options = { weekday:'long', day:'numeric', month:'long' };
+  const dateStr = today.toLocaleDateString('en-AU', options);
+  let dayInfo = dateStr;
+  if (dayNum >= 1 && dayNum <= 45) dayInfo += ` · Trip day ${dayNum}`;
+  else if (dayNum < 1) dayInfo += ' · Trip starts in ' + Math.abs(dayNum-1) + ' days';
+  document.getElementById('header-day').textContent = dayInfo;
+}
+
+async function init() {
+  updateHeaderDay();
+  await loadAllData();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderItinerary();
+}
+
+init();
+</script>
+</body>
+</html>
