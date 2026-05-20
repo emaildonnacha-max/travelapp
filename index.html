@@ -168,6 +168,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pill.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
 
 /* FOOD */
+.country-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.country-tile{border-radius:14px;padding:16px;cursor:pointer;transition:all .15s;text-align:center;border:1px solid transparent}
+.country-tile:active{transform:scale(.97)}
+.country-tile-flag{font-size:32px;margin-bottom:6px}
+.country-tile-name{font-size:13px;font-weight:700}
+.food-category-header{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);font-weight:600;padding:10px 0 6px;margin-top:8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.food-link{display:inline-flex;align-items:center;gap:4px;background:var(--blue-dim);border:1px solid rgba(59,130,246,.2);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--blue);text-decoration:none;font-weight:500;margin-top:5px}
+/* FOOD */
 .food-country-section{margin-bottom:20px}
 .food-country-header{font-size:14px;font-weight:700;padding:8px 12px;border-radius:10px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .food-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:6px}
@@ -177,6 +185,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .food-card-avoid{font-size:11px;color:#fca5a5;margin-bottom:3px}
 .food-card-tip{font-size:11px;color:var(--muted);font-style:italic;margin-top:4px;line-height:1.5;background:var(--surface2);border-radius:6px;padding:5px 8px}
 
+/* WALKS */
+.wr-mode-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.wr-mode-tile{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 16px;cursor:pointer;text-align:center;transition:all .2s}
+.wr-mode-tile:active,.wr-mode-tile.selected{background:var(--amber-dim);border-color:var(--amber)}
+.wr-mode-tile-icon{font-size:36px;margin-bottom:8px}
+.wr-mode-tile-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.wr-mode-tile-sub{font-size:11px;color:var(--muted)}
+.wr-back{background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;font-family:"DM Sans",sans-serif;padding:0 0 12px;display:flex;align-items:center;gap:4px}
+.wr-hire-link{display:inline-flex;align-items:center;gap:4px;background:var(--green-dim);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--green);text-decoration:none;font-weight:500;margin-top:8px}
 /* WALKS */
 .city-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s}
 .city-card:active{transform:scale(.98);border-color:var(--amber)}
@@ -197,6 +214,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .walk-step-food{font-size:10px;color:var(--green);margin-top:2px}
 .walk-step-note{font-size:10px;color:rgba(255,255,255,.4);font-style:italic;margin-top:2px}
 
+/* ACTIVITIES */
+.act-link{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:3px 8px;font-size:10px;text-decoration:none;font-weight:500;margin-top:4px;margin-right:4px}
+.act-link-book{background:var(--amber-dim);border:1px solid rgba(245,158,11,.2);color:var(--amber)}
+.act-link-yt{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.act-link-info{background:var(--blue-dim);border:1px solid rgba(59,130,246,.2);color:var(--blue)}
 /* ACTIVITIES */
 .activity-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px}
 .activity-name{font-size:13px;font-weight:600;margin-bottom:5px}
@@ -317,7 +339,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div id="sub-souvenirs" class="sub-page">
       <div class="sub-header"><button class="back-btn" onclick="closeSub()">← Back</button><div class="section-header">Souvenirs</div></div>
-      <div class="filter-row" id="souvenirs-filter"></div>
       <div id="souvenirs-list"></div>
     </div>
     <div id="sub-activities" class="sub-page">
@@ -869,111 +890,268 @@ function renderEmergency(){
 }
 
 // ── FOOD ─────────────────────────────────────────────────────────────────────
-function renderFood(){
-  const rows=(allData.food||[]).slice(1);
-  const grouped={};
-  let currentCountry='';
+const foodLinks = {
+  'Full Irish': 'https://en.wikipedia.org/wiki/Full_breakfast#Ireland',
+  'Guinness': 'https://www.guinness.com/en',
+  'Murphy's Ice Cream': 'https://murphysicecream.ie',
+  'Claddagh ring': 'https://en.wikipedia.org/wiki/Claddagh_ring',
+  'Galway oysters': 'https://www.galwayoysterfestival.com',
+  'Seafood chowder': 'https://www.ireland.com/en-gb/magazine/food-and-drink/best-seafood-chowder/',
+  'Burek': 'https://en.wikipedia.org/wiki/B%C3%B6rek',
+  'Ćevapi': 'https://en.wikipedia.org/wiki/%C4%86evapi',
+  'Bosnian coffee': 'https://en.wikipedia.org/wiki/Bosnian_coffee',
+  'Baklava': 'https://en.wikipedia.org/wiki/Baklava',
+  'Kremšnita': 'https://en.wikipedia.org/wiki/Krem%C5%A1nita',
+  'Pag cheese': 'https://en.wikipedia.org/wiki/Pag_cheese',
+  'Rakija': 'https://en.wikipedia.org/wiki/Rakia',
+  'Croissant': 'https://en.wikipedia.org/wiki/Croissant',
+  'Bouillon Chartier': 'https://www.bouillon-chartier.com',
+  'Macarons': 'https://www.pierreherme.com',
+  'Rösti': 'https://en.wikipedia.org/wiki/R%C3%B6sti',
+  'Fondue': 'https://en.wikipedia.org/wiki/Fondue',
+  'Läderach': 'https://laderach.com',
+  'Ramen': 'https://en.wikipedia.org/wiki/Ramen',
+  'Sushi': 'https://en.wikipedia.org/wiki/Sushi',
+  'Tsukiji': 'https://www.tsukiji.or.jp/english/',
+  'teamLab': 'https://www.teamlab.art',
+  'Wagyu': 'https://en.wikipedia.org/wiki/Wagyu',
+  'Risotto alla Milanese': 'https://en.wikipedia.org/wiki/Risotto_alla_milanese',
+  'Panzerotti': 'https://en.wikipedia.org/wiki/Panzerotti',
+  'Grilled fish': 'https://www.croatia.hr/en-gb/gastronomy',
+};
 
-  rows.forEach(r=>{
-    if(!r[0])return;
+const foodCategories = {
+  'iconic': ['soda bread','full irish','guinness','aran','chowder','galway oyster','murphy','claddagh','burek','ćevapi','bosnian coffee','kremšnita','rösti','fondue','läderach','ramen','sushi','croissant','risotto','panzerotti','pag','rakija'],
+  'delicious': ['farmhouse','seafood','crab','lobster','grilled fish','octopus','trout','steak','duck','fondue','raclette','wagyu','tonkatsu','tempura','croque','baguette'],
+  'dessert': ['murphy's ice cream','kremšnita','baklava','macaron','gelato','ovomaltine','matcha','taiyaki','mochi','tarte','patisserie','tiramisu','bombolone'],
+  'cheap': ['chipper','centra','spar','bakery','pekara','migros','coop','konbini','7-eleven','bouillon','boulangerie','depachika','ramen','gyudon'],
+};
+
+let foodSelectedCountry = null;
+
+function renderFood(){
+  foodSelectedCountry = null;
+  const rows = (allData.food||[]).slice(1);
+  const grouped = {};
+  let currentCountry = '';
+
+  rows.forEach(r => {
+    if(!r[0]) return;
     if(r[0].startsWith('──')){
-      currentCountry=r[0].replace(/──|🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim();
-      if(!grouped[currentCountry])grouped[currentCountry]=[];
+      currentCountry = r[0].replace(/──|🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim();
+      if(!grouped[currentCountry]) grouped[currentCountry] = [];
     } else if(currentCountry){
       grouped[currentCountry].push(r);
     }
   });
 
-  const countryColors={'IRELAND':'#166534','CROATIA':'#9b1c1c','BOSNIA':'#1e4d2b','SLOVENIA':'#1e3a5f','FRANCE':'#4c1d95','ITALY':'#78350f','SWITZERLAND':'#7f1d1d','JAPAN':'#9f1239'};
+  const countryColors = {'IRELAND':'#166534','CROATIA':'#9b1c1c','BOSNIA':'#1e4d2b','SLOVENIA':'#1e3a5f','FRANCE':'#4c1d95','ITALY':'#78350f','SWITZERLAND':'#7f1d1d','JAPAN':'#9f1239'};
 
-  let html='';
-  Object.entries(grouped).forEach(([country,items])=>{
-    if(!items.length)return;
-    const cKey=Object.keys(countryColors).find(k=>country.toUpperCase().includes(k))||'';
-    const color=countryColors[cKey]||'#1e293b';
-    const flag=getFlagEmoji(country);
-
-    html+=`<div class="food-country-section">
-      <div class="food-country-header" style="background:${color}44;border-left:3px solid ${color}aa">
-        ${flag} ${country}
-      </div>
-      ${items.map(r=>{
-        const [dest,item,cheap,mustdo,avoid,,tips]=[...r,...Array(7).fill('')];
-        return`<div class="food-card">
-          <div class="food-card-item">${item}</div>
-          ${cheap?`<div class="food-card-cheap">💚 ${cheap}</div>`:''}
-          ${mustdo?`<div class="food-card-mustdo">⭐ ${mustdo}</div>`:''}
-          ${avoid?`<div class="food-card-avoid">✗ Avoid: ${avoid}</div>`:''}
-          ${tips?`<div class="food-card-tip">${tips}</div>`:''}
-        </div>`;
-      }).join('')}
+  let html = '<div class="country-tiles">';
+  Object.entries(grouped).forEach(([country, items]) => {
+    if(!items.length) return;
+    const cKey = Object.keys(countryColors).find(k=>country.toUpperCase().includes(k))||'';
+    const color = countryColors[cKey]||'#1e293b';
+    const flag = getFlagEmoji(country);
+    const safeName = country.replace(/'/g,"\'");
+    html += `<div class="country-tile" style="background:${color}44;border-color:${color}88" onclick="showFoodCountry('${safeName}')">
+      <div class="country-tile-flag">${flag}</div>
+      <div class="country-tile-name">${country.split(' ')[0]}</div>
     </div>`;
   });
-  document.getElementById('food-list').innerHTML=html||'<div class="empty">Loading…</div>';
+  html += '</div>';
+  
+  // Store grouped for later
+  window._foodGrouped = grouped;
+  window._foodCountryColors = countryColors;
+  document.getElementById('food-list').innerHTML = html;
+}
+
+function showFoodCountry(country){
+  foodSelectedCountry = country;
+  const items = (window._foodGrouped||{})[country]||[];
+  const countryColors = window._foodCountryColors||{};
+  const cKey = Object.keys(countryColors).find(k=>country.toUpperCase().includes(k))||'';
+  const color = countryColors[cKey]||'#1e293b';
+  const flag = getFlagEmoji(country);
+
+  // Categorise items
+  const cats = {iconic:[], delicious:[], dessert:[], cheap:[], other:[]};
+  items.forEach(r => {
+    const text = ((r[1]||'')+(r[2]||'')+(r[3]||'')).toLowerCase();
+    let assigned = false;
+    for(const [cat, keywords] of Object.entries(foodCategories)){
+      if(keywords.some(k => text.includes(k))){
+        cats[cat].push(r);
+        assigned = true;
+        break;
+      }
+    }
+    if(!assigned) cats.other.push(r);
+  });
+
+  const catLabels = {iconic:'⭐ Iconic', delicious:'😋 Must Eat', dessert:'🍰 Sweet', cheap:'💚 Eat Cheap', other:'🍽️ Also Good'};
+
+  let html = `<button class="wr-back" onclick="renderFood()">← All Countries</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:28px">${flag}</span>
+      <div class="section-header">${country.split(' ')[0]}</div>
+    </div>`;
+
+  Object.entries(cats).forEach(([cat, catItems]) => {
+    if(!catItems.length) return;
+    html += `<div class="food-category-header">${catLabels[cat]}</div>`;
+    catItems.forEach(r => {
+      const [dest,item,cheap,mustdo,avoid,,tips] = [...r,...Array(7).fill('')];
+      // Find a relevant link
+      const linkKey = Object.keys(foodLinks).find(k => item.toLowerCase().includes(k.toLowerCase()));
+      const link = linkKey ? foodLinks[linkKey] : null;
+      html += `<div class="food-card">
+        <div class="food-card-item">${item}</div>
+        ${cheap?`<div class="food-card-cheap">💚 ${cheap}</div>`:''}
+        ${mustdo?`<div class="food-card-mustdo">⭐ ${mustdo}</div>`:''}
+        ${avoid?`<div class="food-card-avoid">✗ Avoid: ${avoid}</div>`:''}
+        ${tips?`<div class="food-card-tip">${tips}</div>`:''}
+        ${link?`<a class="food-link" href="${link}" target="_blank">📖 Read more ↗</a>`:''}
+      </div>`;
+    });
+  });
+
+  document.getElementById('food-list').innerHTML = html;
 }
 
 // ── WALKS ─────────────────────────────────────────────────────────────────────
-function renderWalks(){
-  const rows=(allData.walks||[]).slice(2); // skip title+header rows
-  const cities={};
-  let currentCity='';
-  let currentRoute='';
+let walksMode = null; // null=tiles, 'walk'=walks, 'ride'=rides
+let walksCity = null;
 
-  rows.forEach((r,i)=>{
-    const stop=r[0]||'';
+// E-bike hire links by location
+const ebikeHire = {
+  'Dublin': {name:'Dublin Bike Tours',url:'https://dublinbiketours.ie'},
+  'Cork': {name:'Rothar Bikes Cork',url:'https://rothar.ie'},
+  'Killarney': {name:'Killarney Cycling Tours',url:'https://killarneycyclingtours.com'},
+  'Galway': {name:'Irish Cycling Safaris',url:'https://irishcyclingsafaris.com'},
+  'Connemara': {name:'Irish Cycling Safaris',url:'https://irishcyclingsafaris.com'},
+  'Dubrovnik': {name:'Dubrovnik E-Bike Tours',url:'https://dubrovnik-ebike.com'},
+  'Kobarid': {name:'Soča Outdoor',url:'https://soca-outdoor.com'},
+  'Bled': {name:'3glav Adventures',url:'https://3glav.com'},
+  'Slovenia': {name:'3glav Adventures',url:'https://3glav.com'},
+  'Lenzerheide': {name:'Lenzerheide Bike',url:'https://lenzerheide.com/en/summer/biking'},
+  'Interlaken': {name:'Imboden Bike',url:'https://imboden-bike.ch'},
+  'Tokyo': {name:'Tokyo Cycling Tour',url:'https://tokyocyclingtour.com'},
+};
+
+function renderWalks(){
+  walksMode = null;
+  walksCity = null;
+  document.getElementById('walks-list').innerHTML = `
+    <div class="wr-mode-tiles">
+      <div class="wr-mode-tile" onclick="selectWalkMode('walk')">
+        <div class="wr-mode-tile-icon">🚶</div>
+        <div class="wr-mode-tile-title">Self-Guided Walks</div>
+        <div class="wr-mode-tile-sub">City & coastal walks, step by step</div>
+      </div>
+      <div class="wr-mode-tile" onclick="selectWalkMode('ride')">
+        <div class="wr-mode-tile-icon">🚵</div>
+        <div class="wr-mode-tile-title">E-Bike Rides</div>
+        <div class="wr-mode-tile-sub">Scenic routes + hire links</div>
+      </div>
+    </div>`;
+}
+
+function selectWalkMode(mode){
+  walksMode = mode;
+  const rows = (allData.walks||[]).slice(2);
+  const cities = {};
+  let currentCity = '';
+  let currentRoute = '';
+
+  rows.forEach(r => {
+    const stop = r[0]||'';
     if(stop.startsWith('═')){
-      const title=stop.replace(/═/g,'').trim();
-      // Extract city name from title
-      const cityMatch=title.match(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/);
-      const flag=cityMatch?cityMatch[0]:'✈️';
-      // Get city from title - take words after flag emoji
-      const cityName=title.replace(/[🇮🇪🇭🇷🇧🇦🇸🇮🇫🇷🇮🇹🇨🇭🇯🇵]/g,'').replace(/═/g,'').split('—')[0].split('(')[0].trim();
-      const firstWord=cityName.split(' ')[0];
-      currentRoute=title;
-      if(!cities[firstWord])cities[firstWord]={flag,name:firstWord,routes:{}};
-      cities[firstWord].routes[title]=[];
-      currentCity=firstWord;
-    } else if(currentCity&&stop){
-      const city=cities[currentCity];
-      if(city&&city.routes[currentRoute])city.routes[currentRoute].push(r);
+      const title = stop.replace(/═/g,'').trim();
+      const flagMatch = title.match(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/);
+      const flag = flagMatch ? flagMatch[0] : '✈️';
+      const cityName = title.replace(/[🇮🇪🇭🇷🇧🇦🇸🇮🇫🇷🇮🇹🇨🇭🇯🇵]/g,'').replace(/═/g,'').split('—')[0].split('(')[0].trim();
+      const firstWord = cityName.split(' ')[0];
+      const isRide = title.toLowerCase().includes('bike') || title.toLowerCase().includes('ride') || title.toLowerCase().includes('e-bike');
+      const isWalk = !isRide;
+      currentRoute = title;
+      if((mode==='ride' && isRide) || (mode==='walk' && isWalk)){
+        if(!cities[firstWord]) cities[firstWord] = {flag, name:cityName.substring(0,30), routes:{}};
+        cities[firstWord].routes[title] = [];
+        currentCity = firstWord;
+      } else {
+        currentCity = '';
+      }
+    } else if(currentCity && (r[0]||'')){
+      if(cities[currentCity] && cities[currentCity].routes[currentRoute])
+        cities[currentCity].routes[currentRoute].push(r);
     }
   });
 
-  let html='';
-  Object.entries(cities).forEach(([city,data])=>{
-    const routeKeys=Object.keys(data.routes);
-    const cityId=`city-${city.replace(/\s/g,'-')}`;
-    html+=`<div class="city-card" id="${cityId}">
-      <div class="city-card-header">
-        <div class="city-card-name">${data.flag} ${data.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${routeKeys.length} route${routeKeys.length>1?'s':''}</div>
-      </div>
-      <div class="city-card-routes">
-        ${routeKeys.map((rk,ri)=>{
-          const isWalk=rk.toLowerCase().includes('walk')||rk.toLowerCase().includes('literary')||rk.toLowerCase().includes('city');
-          const isBike=rk.toLowerCase().includes('bike')||rk.toLowerCase().includes('ride')||rk.toLowerCase().includes('e-bike');
-          const icon=isBike?'🚵':'🚶';
-          const label=rk.replace(/═/g,'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim().substring(0,35);
-          return`<div class="route-btn" onclick="toggleRoute('${cityId}-route-${ri}',event)">${icon} ${label}</div>`;
-        }).join('')}
-      </div>
-      ${routeKeys.map((rk,ri)=>`
-        <div class="walk-detail" id="${cityId}-route-${ri}">
-          ${data.routes[rk].map(s=>`
-            <div class="walk-step-card">
-              <div class="walk-step-time">${s[1]||''}</div>
-              <div class="walk-step-content">
-                <div class="walk-step-title">${s[2]||''}</div>
-                ${s[3]?`<div class="walk-step-desc">${s[3]}</div>`:''}
-                ${s[4]?`<div class="walk-step-food">⏱ ${s[4]}</div>`:''}
-                ${s[5]?`<div class="walk-step-food">🍴 ${s[5]}</div>`:''}
-                ${s[6]?`<div class="walk-step-note">${s[6]}</div>`:''}
-              </div>
+  const icon = mode==='walk' ? '🚶' : '🚵';
+  const label = mode==='walk' ? 'Self-Guided Walks' : 'E-Bike Rides';
+
+  let html = `<button class="wr-back" onclick="renderWalks()">← Back</button>
+    <div class="section-header" style="margin-bottom:12px">${icon} ${label}</div>`;
+
+  if(!Object.keys(cities).length){
+    html += '<div class="empty">No routes found</div>';
+  } else {
+    Object.entries(cities).forEach(([city, data]) => {
+      const routeKeys = Object.keys(data.routes);
+      const cityId = `city-${city.replace(/\s/g,'-')}`;
+      const hire = Object.entries(ebikeHire).find(([k]) => city.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(city.toLowerCase()));
+      
+      html += `<div class="city-card" id="${cityId}">
+        <div class="city-card-header" onclick="toggleCityRoutes('${cityId}')">
+          <div class="city-card-name">${data.flag} ${data.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${routeKeys.length} route${routeKeys.length>1?'s':''} ▼</div>
+        </div>
+        ${mode==='ride' && hire ? `<a class="wr-hire-link" href="${hire[1].url}" target="_blank">🚵 Hire e-bikes — ${hire[1].name} ↗</a>` : ''}
+        <div id="${cityId}-routes" style="display:none;margin-top:10px">
+          <div class="city-card-routes">
+            ${routeKeys.map((rk,ri) => {
+              const label = rk.replace(/═/g,'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim().substring(0,40);
+              return `<div class="route-btn" onclick="toggleRoute('${cityId}-route-${ri}',event)">${label}</div>`;
+            }).join('')}
+          </div>
+          ${routeKeys.map((rk,ri) => `
+            <div class="walk-detail" id="${cityId}-route-${ri}">
+              ${data.routes[rk].map(s => `
+                <div class="walk-step-card">
+                  <div class="walk-step-time">${s[1]||''}</div>
+                  <div class="walk-step-content">
+                    <div class="walk-step-title">${s[2]||''}</div>
+                    ${s[3]?`<div class="walk-step-desc">${s[3]}</div>`:''}
+                    ${s[4]?`<div class="walk-step-food">⏱ ${s[4]}</div>`:''}
+                    ${s[5]?`<div class="walk-step-food">🍴 ${s[5]}</div>`:''}
+                    ${s[6]?`<div class="walk-step-note">${s[6]}</div>`:''}
+                  </div>
+                </div>`).join('')}
             </div>`).join('')}
-        </div>`).join('')}
-    </div>`;
-  });
-  document.getElementById('walks-list').innerHTML=html||'<div class="empty">No walks data</div>';
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById('walks-list').innerHTML = html;
+}
+
+function toggleCityRoutes(cityId){
+  const el = document.getElementById(cityId+'-routes');
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+function toggleRoute(id,e){
+  e.stopPropagation();
+  const el=document.getElementById(id);
+  if(!el)return;
+  const isOpen=el.classList.contains('open');
+  const card=el.closest('.city-card');
+  card.querySelectorAll('.walk-detail').forEach(d=>d.classList.remove('open'));
+  if(!isOpen)el.classList.add('open');
 }
 
 function toggleRoute(id,e){
@@ -1031,6 +1209,52 @@ function setPhotoFilter(key,val){
 // ── ACTIVITIES ────────────────────────────────────────────────────────────────
 let actFilters={loc:'All',cost:'All',vibe:'All'};
 
+// Booking & info links for activities
+const actLinks = {
+  'Skellig Michael': {book:'https://www.skelligrock.com', yt:'https://www.youtube.com/results?search_query=skellig+michael'},
+  'Cliffs of Moher': {book:'https://www.cliffsofmoher.ie', yt:'https://www.youtube.com/results?search_query=cliffs+of+moher'},
+  'city walls': {book:'https://www.dubrovnikcard.com', yt:'https://www.youtube.com/results?search_query=dubrovnik+city+walls'},
+  'cable car': {book:'https://www.dubrovnikcablecar.com', yt:'https://www.youtube.com/results?search_query=dubrovnik+cable+car'},
+  'teamLab': {book:'https://borderless.teamlab.art', yt:'https://www.youtube.com/results?search_query=teamlab+borderless+tokyo'},
+  'DisneySea': {book:'https://reserve.tokyodisneyresort.jp', yt:'https://www.youtube.com/results?search_query=tokyo+disneysea'},
+  'Disneyland': {book:'https://reserve.tokyodisneyresort.jp', yt:'https://www.youtube.com/results?search_query=tokyo+disneyland'},
+  'Postojna': {book:'https://www.postojnska-jama.eu', yt:'https://www.youtube.com/results?search_query=postojna+cave'},
+  'rafting': {book:'https://soca-outdoor.com', yt:'https://www.youtube.com/results?search_query=soča+river+rafting'},
+  'Soča': {book:'https://soca-outdoor.com', yt:'https://www.youtube.com/results?search_query=soča+valley'},
+  'paragliding': {book:'https://www.interlaken.ch/en/activities/paragliding', yt:'https://www.youtube.com/results?search_query=interlaken+paragliding'},
+  'Grindelwald': {book:'https://www.jungfrau.ch', yt:'https://www.youtube.com/results?search_query=grindelwald+first+cliff+walk'},
+  'Harder Kulm': {book:'https://www.harderbahn.ch', yt:'https://www.youtube.com/results?search_query=harder+kulm+interlaken'},
+  'Trümmelbach': {book:'https://www.truemmelbach.ch', yt:'https://www.youtube.com/results?search_query=trümmelbach+falls'},
+  'Bernina': {book:'https://www.rhb.ch', yt:'https://www.youtube.com/results?search_query=bernina+express'},
+  'Kayak': {book:'https://www.adriatickayaktours.com', yt:'https://www.youtube.com/results?search_query=dubrovnik+kayak'},
+  'pletna': {book:'https://www.bled.si', yt:'https://www.youtube.com/results?search_query=lake+bled+pletna+boat'},
+  'Bled': {book:'https://www.bled.si/en', yt:'https://www.youtube.com/results?search_query=lake+bled+slovenia'},
+  'Senso-ji': {info:'https://www.senso-ji.jp', yt:'https://www.youtube.com/results?search_query=senso-ji+temple+tokyo'},
+  'Shibuya': {info:'https://www.scramble-square.com', yt:'https://www.youtube.com/results?search_query=shibuya+crossing'},
+  'Eiffel Tower': {book:'https://ticket.toureiffel.paris', yt:'https://www.youtube.com/results?search_query=eiffel+tower+paris'},
+  'Musée d'Orsay': {book:'https://www.musee-orsay.fr', yt:'https://www.youtube.com/results?search_query=musée+dorsay'},
+  'Duomo': {book:'https://www.duomomilano.it', yt:'https://www.youtube.com/results?search_query=milan+duomo+rooftop'},
+  'Canyoning': {book:'https://www.outdoor-interlaken.ch', yt:'https://www.youtube.com/results?search_query=interlaken+canyoning'},
+  'Via Ferrata': {book:'https://www.outdoor-interlaken.ch', yt:'https://www.youtube.com/results?search_query=harder+kulm+via+ferrata'},
+  'White water': {book:'https://www.outdoor-interlaken.ch', yt:'https://www.youtube.com/results?search_query=interlaken+white+water+rafting'},
+  'Kravice': {info:'https://www.kravicewaterfalls.com', yt:'https://www.youtube.com/results?search_query=kravice+waterfalls+bosnia'},
+  'Blagaj': {info:'https://en.wikipedia.org/wiki/Blagaj_Tekke', yt:'https://www.youtube.com/results?search_query=blagaj+tekke+mostar'},
+  'Stari Most': {info:'https://en.wikipedia.org/wiki/Stari_Most', yt:'https://www.youtube.com/results?search_query=stari+most+mostar+bridge+divers'},
+};
+
+function getActLinks(actText){
+  const text = actText.toLowerCase();
+  const match = Object.entries(actLinks).find(([k]) => text.includes(k.toLowerCase()));
+  if(!match) return '';
+  const [,links] = match;
+  let html = '<div style="margin-top:5px">';
+  if(links.book) html += `<a class="act-link act-link-book" href="${links.book}" target="_blank">🎫 Book ↗</a>`;
+  if(links.info) html += `<a class="act-link act-link-info" href="${links.info}" target="_blank">ℹ️ Info ↗</a>`;
+  if(links.yt) html += `<a class="act-link act-link-yt" href="${links.yt}" target="_blank">▶ YouTube ↗</a>`;
+  html += '</div>';
+  return html;
+}
+
 function renderActivities(){
   const rows=(allData.activities||[]).slice(1).filter(r=>r[0]&&!r[0].startsWith('──'));
 
@@ -1039,9 +1263,9 @@ function renderActivities(){
     return d.split(' ')[0]||'';
   }).filter(Boolean))];
 
-  document.getElementById('act-loc-filter').innerHTML=locs.slice(0,12).map(l=>`<div class="pill ${actFilters.loc===l?'active':''}" onclick="setActFilter('loc','${l}')">${l}</div>`).join('');
+  document.getElementById('act-loc-filter').innerHTML=locs.slice(0,14).map(l=>`<div class="pill ${actFilters.loc===l?'active':''}" onclick="setActFilter('loc','${l}')">${l}</div>`).join('');
   document.getElementById('act-cost-filter').innerHTML=['All','💚 Free','💛 Mid','💰 Expensive'].map(c=>`<div class="pill ${actFilters.cost===c?'active':''}" onclick="setActFilter('cost','${c}')">${c}</div>`).join('');
-  document.getElementById('act-vibe-filter').innerHTML=['All','👨‍👩‍👧 Kids','🏃 Adventure','💑 Romance','🌿 Nature','🏙️ City','🎨 Culture'].map(v=>`<div class="pill ${actFilters.vibe===v?'active':''}" onclick="setActFilter('vibe','${v}')">${v}</div>`).join('');
+  document.getElementById('act-vibe-filter').innerHTML=['All','👨‍👩‍👧 Kids','🏃 Adventure','💑 Romance','🌿 Nature','🏙️ City','🎨 Culture','🚵 Biking','🌊 Water'].map(v=>`<div class="pill ${actFilters.vibe===v?'active':''}" onclick="setActFilter('vibe','${v}')">${v}</div>`).join('');
 
   const filtered=rows.filter(r=>{
     const [dest,act,kids,cost,,notes]=[...r,...Array(6).fill('')];
@@ -1055,15 +1279,16 @@ function renderActivities(){
     const [dest,act,kids,cost,advance,notes]=[...r,...Array(6).fill('')];
     const tags=[];
     if(dest)tags.push(`<span class="tag tag-loc">${dest.split(' ')[0]}</span>`);
-    if(kids&&kids.includes('Perfect'))tags.push(`<span class="tag tag-kids">👨‍👩‍👧 Kids</span>`);
     if(cost&&cost.includes('Free'))tags.push(`<span class="tag tag-cost-free">Free</span>`);
     else if(cost&&cost.includes('💛'))tags.push(`<span class="tag tag-cost-mid">${cost}</span>`);
     else if(cost&&cost.includes('💰'))tags.push(`<span class="tag tag-cost-exp">${cost}</span>`);
-    if(advance&&advance.toLowerCase().includes('yes'))tags.push(`<span class="tag tag-adventure">Book ahead</span>`);
+    if(advance&&advance.toLowerCase().includes('yes'))tags.push(`<span class="tag tag-adventure">📅 Book ahead</span>`);
+    const links = getActLinks((act||'')+(notes||''));
     return`<div class="activity-card">
       <div class="activity-name">${act}</div>
       <div class="activity-tags">${tags.join('')}</div>
       ${notes?`<div class="activity-note">${notes}</div>`:''}
+      ${links}
     </div>`;
   }).join('')||'<div class="empty">No results for these filters</div>';
 }
@@ -1071,11 +1296,13 @@ function renderActivities(){
 function matchVibe(vibe,kids,act,notes){
   const text=((kids||'')+(act||'')+(notes||'')).toLowerCase();
   if(vibe.includes('Kids'))return text.includes('kid')||text.includes('famil')||text.includes('perfect');
-  if(vibe.includes('Adventure'))return text.includes('raft')||text.includes('climb')||text.includes('hik')||text.includes('bike')||text.includes('kayak');
+  if(vibe.includes('Adventure'))return text.includes('raft')||text.includes('climb')||text.includes('hik')||text.includes('canyon')||text.includes('abseil');
   if(vibe.includes('Romance'))return text.includes('sunset')||text.includes('wine')||text.includes('dinner')||text.includes('tori')||text.includes('donnacha');
   if(vibe.includes('Nature'))return text.includes('park')||text.includes('waterfall')||text.includes('lake')||text.includes('mountain')||text.includes('forest');
   if(vibe.includes('City'))return text.includes('city')||text.includes('street')||text.includes('market')||text.includes('old town');
   if(vibe.includes('Culture'))return text.includes('museum')||text.includes('castle')||text.includes('church')||text.includes('historical');
+  if(vibe.includes('Biking'))return text.includes('bike')||text.includes('cycle')||text.includes('mtb')||text.includes('e-bike');
+  if(vibe.includes('Water'))return text.includes('raft')||text.includes('kayak')||text.includes('swim')||text.includes('paddl')||text.includes('waterfall');
   return true;
 }
 
@@ -1085,34 +1312,89 @@ function setActFilter(key,val){
 }
 
 // ── SOUVENIRS ─────────────────────────────────────────────────────────────────
-let sovFilter='All';
+let sovSelectedCountry = null;
+
+const sovCategories = {
+  'iconic': ['claddagh','crystal','waterford','swiss railway clock','cuckoo','bernina','kit kat','japanese knife','swiss army','läderach','hurling','aran','pag lace','idrija'],
+  'cheap': ['ovomaltine','ricola','sembei','gashapon','origami','tenugui','honey','rakija','baklava','lokum','tin whistle','gaa jersey'],
+  'romantic': ['ring','crystal','lace','champagne','wine','macarons','furoshiki','tea set','print','vintage','olive oil'],
+  'fun': ['hurling','gashapon','pokemon','kendama','daruma','swiss army','kit kat','cuckoo','model train','tin whistle'],
+  'foodie': ['whiskey','chocolate','honey','olive oil','champagne','rakija','baklava','macarons','ovomaltine','kit kat','sake','cheese'],
+};
+
 function renderSouvenirs(){
-  const rows=(allData.souvenirs||[]).slice(1).filter(r=>r[0]&&!r[0].startsWith('══'));
-  const countries=['All',...new Set(rows.map(r=>(r[0]||'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim().split(' ')[0]).filter(Boolean))];
+  sovSelectedCountry = null;
+  const rows = (allData.souvenirs||[]).slice(1).filter(r=>r[0]&&!r[0].startsWith('══')&&!r[0].startsWith('Tip'));
+  const grouped = {};
 
-  document.getElementById('souvenirs-filter').innerHTML=countries.slice(0,12).map(c=>`<div class="pill ${sovFilter===c?'active':''}" onclick="setSovFilter('${c}')">${c}</div>`).join('');
-
-  const filtered=rows.filter(r=>{
-    if(sovFilter==='All')return true;
-    return(r[0]||'').toLowerCase().includes(sovFilter.toLowerCase());
+  rows.forEach(r => {
+    const raw = r[0]||'';
+    const country = raw.replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵/g,'').trim().split(' ')[0];
+    if(!country) return;
+    if(!grouped[country]) grouped[country] = [];
+    grouped[country].push(r);
   });
 
-  document.getElementById('souvenirs-list').innerHTML=filtered.map(r=>{
-    const [country,item,forWho,cost,where,why,,notes]=[...r,...Array(8).fill('')];
-    const isPriority=(why||'').includes('🔴')||(notes||'').includes('🔴');
-    return`<div class="food-card ${isPriority?'photo-priority':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <div class="food-card-item">${item}</div>
-        ${cost?`<div style="font-size:11px;font-weight:700;color:var(--amber);flex-shrink:0">${cost}</div>`:''}
-      </div>
-      ${forWho?`<div style="font-size:11px;color:var(--blue);margin-bottom:3px">For: ${forWho}</div>`:''}
-      ${where?`<div class="food-card-cheap">📍 ${where}</div>`:''}
-      ${why?`<div class="food-card-tip">${why}</div>`:''}
+  const countryColors = {'Ireland':'#166534','Croatia':'#9b1c1c','Bosnia':'#1e4d2b','Slovenia':'#1e3a5f','France':'#4c1d95','Italy':'#78350f','Switzerland':'#7f1d1d','Japan':'#9f1239'};
+  window._sovGrouped = grouped;
+  window._sovColors = countryColors;
+
+  let html = '<div class="country-tiles">';
+  Object.entries(grouped).forEach(([country, items]) => {
+    if(!items.length) return;
+    const cKey = Object.keys(countryColors).find(k=>country.toLowerCase().includes(k.toLowerCase()))||'';
+    const color = countryColors[cKey]||'#1e293b';
+    const flag = getFlagEmoji(country);
+    html += `<div class="country-tile" style="background:${color}44;border-color:${color}88" onclick="showSovCountry('${country}')">
+      <div class="country-tile-flag">${flag}</div>
+      <div class="country-tile-name">${country}</div>
     </div>`;
-  }).join('')||'<div class="empty">No results</div>';
+  });
+  html += '</div>';
+  document.getElementById('souvenirs-list').innerHTML = html;
 }
 
-function setSovFilter(val){sovFilter=val;renderSouvenirs()}
+function showSovCountry(country){
+  const items = (window._sovGrouped||{})[country]||[];
+  const flag = getFlagEmoji(country);
+  const cats = {iconic:[],cheap:[],romantic:[],fun:[],foodie:[],other:[]};
+
+  items.forEach(r => {
+    const text = ((r[1]||'')+(r[5]||'')+(r[6]||'')).toLowerCase();
+    let assigned = false;
+    for(const [cat,keywords] of Object.entries(sovCategories)){
+      if(keywords.some(k=>text.includes(k))){ cats[cat].push(r); assigned=true; break; }
+    }
+    if(!assigned) cats.other.push(r);
+  });
+
+  const catLabels = {iconic:'⭐ Iconic',cheap:'💚 Cheap & Cheerful',romantic:'💑 Romantic',fun:'🎉 Fun',foodie:'🍫 Foodie',other:'🎁 Also Worth It'};
+
+  let html = `<button class="wr-back" onclick="renderSouvenirs()">← All Countries</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:28px">${flag}</span>
+      <div class="section-header">${country}</div>
+    </div>`;
+
+  Object.entries(cats).forEach(([cat,catItems]) => {
+    if(!catItems.length) return;
+    html += `<div class="food-category-header">${catLabels[cat]}</div>`;
+    catItems.forEach(r => {
+      const [,item,forWho,cost,where,why] = [...r,...Array(6).fill('')];
+      const isPriority = (why||'').includes('🔴');
+      html += `<div class="food-card${isPriority?' photo-priority':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="food-card-item">${item}</div>
+          ${cost?`<div style="font-size:11px;font-weight:700;color:var(--amber);flex-shrink:0">${cost}</div>`:''}
+        </div>
+        ${forWho?`<div style="font-size:11px;color:var(--blue);margin-bottom:3px">For: ${forWho}</div>`:''}
+        ${where?`<div class="food-card-cheap">📍 ${where}</div>`:''}
+        ${why?`<div class="food-card-tip">${why}</div>`:''}
+      </div>`;
+    });
+  });
+  document.getElementById('souvenirs-list').innerHTML = html;
+}
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 function switchTab(name){
