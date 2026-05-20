@@ -442,7 +442,6 @@ function renderDaySummary(dayNum, isDemo=false){
   const el=document.getElementById('day-summary');
   el.style.display='block';
   document.getElementById('content').style.display='none';
-  document.getElementById('calendar-view').style.display='none';
 
   if(!row){
     const preTrip=dayNum<1;
@@ -682,7 +681,6 @@ function renderDaySummaryContent(row, isDemo, dayNum){
 // ── FULL TRIP LIST ────────────────────────────────────────────────────────────
 function renderFullTrip(){
   document.getElementById('day-summary').style.display='none';
-  document.getElementById('calendar-view').style.display='none';
   document.getElementById('content').style.display='block';
 
   const rows=(allData.itin||[]).slice(1).filter(r=>r[0]&&r[1]&&r[1]!=='DAY');
@@ -741,10 +739,10 @@ function showMode(mode){
   setActiveBtn(mode);
 
   // Hide all
-  document.getElementById('day-summary').style.display='none';
-  document.getElementById('content').style.display='none';
-  document.getElementById('calendar-view').style.display='none';
-  document.getElementById('countdown-block').style.display='none';
+  const safeHide=id=>{const el=document.getElementById(id);if(el)el.style.display='none';}
+  safeHide('day-summary');
+  safeHide('content');
+  safeHide('countdown-block');
 
   const todayDay=getTodayDayNum();
   const onTrip=todayDay>=1&&todayDay<=45;
@@ -752,7 +750,7 @@ function showMode(mode){
   if(mode==='today'){
     if(!onTrip){
       updateCountdown();
-      renderDaySummary(1,true); // demo
+      renderDaySummary(1,true);
     } else {
       renderDaySummary(todayDay,false);
     }
