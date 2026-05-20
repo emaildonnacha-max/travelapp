@@ -92,24 +92,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .demo-banner{background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.7);text-align:center;line-height:1.5}
 .demo-banner strong{color:var(--blue)}
 
-/* CALENDAR */
-#calendar-view{display:none;padding:12px 12px 80px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.cal-month{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
-.cal-nav{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:18px;cursor:pointer;color:var(--text)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
-.cal-day-label{text-align:center;font-size:10px;color:var(--muted);letter-spacing:1px;padding:4px 0;text-transform:uppercase}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;position:relative;transition:all .15s}
-.cal-day.empty{cursor:default}
-.cal-day.trip-day{background:var(--surface2);border:1px solid var(--border)}
-.cal-day.trip-day:active{transform:scale(.92)}
-.cal-day.today{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);font-weight:700}
-.cal-day.selected{background:var(--amber);color:#000;font-weight:700}
-.cal-day.past{opacity:.4}
-.cal-day-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--amber)}
-.cal-country-strip{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
-.cal-country-pill{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)}
-
 /* MAIN CONTENT */
 #content{padding:0 12px 80px}
 .trip-card{border-radius:14px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border);animation:slideIn .3s ease}
@@ -266,7 +248,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="day-buttons">
       <button class="day-btn active" id="btn-today" onclick="showMode('today')">Today</button>
       <button class="day-btn" id="btn-tomorrow" onclick="showMode('tomorrow')">Tomorrow</button>
-      <button class="day-btn" id="btn-calendar" onclick="showMode('calendar')">📅 Calendar</button>
       <button class="day-btn" id="btn-full" onclick="showMode('full')">Full Trip</button>
     </div>
   </div>
@@ -291,18 +272,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
   <!-- FULL TRIP LIST -->
   <div id="content"></div>
-
-  <!-- CALENDAR -->
-  <div id="calendar-view">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="calPrev()">‹</button>
-      <div class="cal-month" id="cal-month-label"></div>
-      <button class="cal-nav" onclick="calNext()">›</button>
-    </div>
-    <div class="cal-grid" id="cal-day-labels"></div>
-    <div class="cal-grid" id="cal-grid"></div>
-    <div class="cal-country-strip" id="cal-legend"></div>
-  </div>
 
   <!-- BOOKINGS TAB -->
   <div id="tab-bookings" class="tab-content" style="padding:12px 12px 80px">
@@ -495,54 +464,82 @@ function renderDaySummaryContent(row, isDemo, dayNum){
   const color=getCountryColor(country);
   const flag=getFlagEmoji(country);
   const todayDayNum=getTodayDayNum();
+  const daysUntil=dayNum-todayDayNum;
 
-  // Get photos for this location
+  // Get photos for this location (more - up to 5)
+  const locWords=(location||'').toLowerCase().split(/[→\s,\/]+/).filter(w=>w.length>3);
   const photos=(allData.photos||[]).slice(1).filter(r=>{
+    if(!r[2])return false;
     const loc=(r[0]||'').toLowerCase();
-    const dest=(location||'').toLowerCase().split('→')[0].trim().split(' ')[0];
-    return dest.length>3&&loc.includes(dest);
-  }).slice(0,2);
+    return locWords.some(w=>loc.includes(w));
+  }).slice(0,5);
 
-  // Get food for this country
-  const countryName=(country||'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵|✈️|\s*(IN TRANSIT)\s*/gi,'').trim().toLowerCase();
+  // Get country-level photos if no location match
+  const countryForPhotos=(country||'').replace(/🇮🇪|🇭🇷|🇧🇦|🇸🇮|🇫🇷|🇮🇹|🇨🇭|🇯🇵|✈️|\s*(IN TRANSIT)\s*/gi,'').trim().toLowerCase();
+  const countryPhotos=photos.length?photos:(allData.photos||[]).slice(1).filter(r=>{
+    const loc=(r[0]||'').toLowerCase();
+    return countryForPhotos.length>2&&loc.split(' ')[0]===countryForPhotos.split(' ')[0];
+  }).slice(0,4);
+
+  // Get food for this country (more - up to 5)
+  const countryName=countryForPhotos;
   const foods=(allData.food||[]).slice(1).filter(r=>{
     const dest=(r[0]||'').toLowerCase();
+    if(!r[1]||!dest)return false;
     return countryName.length>2&&dest.includes(countryName.split(' ')[0]);
-  }).slice(0,2);
+  }).slice(0,5);
 
-  // Get activities
-  const locFirst=(location||'').split('→')[0].trim().split(' ')[0].toLowerCase();
+  // Get activities for this location (more - up to 6)
   const acts=(allData.activities||[]).slice(1).filter(r=>{
+    if(!r[1])return false;
     const d=(r[0]||'').toLowerCase();
-    return locFirst.length>3&&d.includes(locFirst);
-  }).slice(0,3);
+    return locWords.some(w=>w.length>3&&d.includes(w));
+  });
+  // Fallback to country if no location match
+  const countryActs=acts.length?acts:(allData.activities||[]).slice(1).filter(r=>{
+    if(!r[1])return false;
+    const d=(r[0]||'').toLowerCase();
+    return countryName.length>2&&d.includes(countryName.split(' ')[0]);
+  });
+  const displayActs=countryActs.slice(0,6);
 
-  // Get walk for this location
-  const walks=(allData.walks||[]);
+  // Get walk steps for this location
+  const walks=(allData.walks||[]).slice(2);
   let walkSteps=[];
   let inWalk=false;
   for(const r of walks){
     const stop=r[0]||'';
     if(stop.startsWith('═')){
-      const title=stop.replace(/═/g,'').toLowerCase();
-      inWalk=title.includes(locFirst)&&locFirst.length>3;
-    } else if(inWalk&&stop){
+      const title=stop.toLowerCase();
+      inWalk=locWords.some(w=>w.length>3&&title.includes(w));
+    } else if(inWalk&&r[2]){
       walkSteps.push(r);
-      if(walkSteps.length>=4)break;
+      if(walkSteps.length>=5)break;
     }
   }
 
-  const labelText = isDemo ? (dayNum<1?`Preview — Day 1`:`Day ${dayNum}`) : (dayNum===getTodayDayNum()?'TODAY':'TOMORROW');
+  // Weather display logic
+  const weatherLabel = daysUntil<=7 && daysUntil>=0
+    ? '🌤 Weather Forecast'
+    : '🌤 Probable Weather';
+  const weatherNote = daysUntil>7
+    ? '<div style="font-size:10px;color:var(--muted);margin-top:4px;font-style:italic">Based on seasonal averages — check closer to the date for live forecast</div>'
+    : '';
 
-  let html=``;
+  const labelText = isDemo
+    ? (dayNum<1?'Preview — Day 1':`Day ${dayNum}`)
+    : (dayNum===todayDayNum?'TODAY':'TOMORROW');
+
+  let html='';
 
   if(isDemo&&dayNum<1){
     html+=`<div class="demo-banner" style="margin:0 0 10px">
       <strong>✨ Demo Preview</strong><br>
-      Trip hasn't started yet — here's a taste of what Day 1 looks like. Tap Today once you're on the road!
+      Trip starts in ${Math.abs(dayNum-1)} days — here's a taste of what Day 1 looks like!
     </div>`;
   }
 
+  // Hero
   html+=`<div class="summary-hero" style="background:linear-gradient(135deg,${color}40,${color}15);border-color:${color}60">
     <div class="summary-hero-flag">${flag}</div>
     <div class="summary-day-label">${labelText} · ${date} · Day ${day}</div>
@@ -554,8 +551,8 @@ function renderDaySummaryContent(row, isDemo, dayNum){
   if(transport||localTime||brisbaneTime){
     html+=`<div class="summary-section">
       <div class="summary-section-title">🚗 Getting There</div>
-      ${transport?`<div class="info-pill"><span class="info-pill-value">${transport}</span></div>`:''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      ${transport?`<div class="info-pill" style="margin-bottom:6px"><span class="info-pill-value">${transport}</span></div><br>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         ${localTime?`<div class="info-pill"><span class="info-pill-label">Local&nbsp;</span><span class="info-pill-value">${localTime}</span></div>`:''}
         ${brisbaneTime?`<div class="info-pill"><span class="info-pill-label">BNE&nbsp;</span><span class="info-pill-value" style="color:var(--muted)">${brisbaneTime}</span></div>`:''}
       </div>
@@ -579,8 +576,8 @@ function renderDaySummaryContent(row, isDemo, dayNum){
       <div class="accom-card">
         <div class="accom-name">${lines[0]}</div>
         ${lines.length>1?`<div class="accom-addr">${lines.slice(1).join(', ')}</div>`:''}
-        ${ref?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${ref}</div>`:''}
-        ${phone?`<a class="accom-phone" href="tel:${phone}">📞 ${ref.split('|')[0].replace('Tel:','').trim()}</a>`:''}
+        ${ref?`<div style="font-size:11px;color:var(--muted);margin-bottom:${phone?'6':'0'}px">${ref}</div>`:''}
+        ${phone?`<a class="accom-phone" href="tel:${phone}">📞 Call property</a>`:''}
       </div>
     </div>`;
   }
@@ -588,8 +585,8 @@ function renderDaySummaryContent(row, isDemo, dayNum){
   // Weather
   if(weather){
     html+=`<div class="summary-section">
-      <div class="summary-section-title">🌤 Weather</div>
-      <div class="weather-banner">${weather}</div>
+      <div class="summary-section-title">${weatherLabel}</div>
+      <div class="weather-banner">${weather}${weatherNote}</div>
     </div>`;
   }
 
@@ -601,56 +598,81 @@ function renderDaySummaryContent(row, isDemo, dayNum){
     </div>`;
   }
 
-  // Activities
-  if(acts.length){
+  // Suggested Activities (rich)
+  if(displayActs.length){
     html+=`<div class="summary-section">
-      <div class="summary-section-title">🎯 Activities Here</div>
-      ${acts.map(a=>`<div class="activity-teaser">
-        <div style="flex:1"><div style="font-size:13px;font-weight:600">${a[1]||''}</div>
-        ${a[2]?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${a[2]}</div>`:''}
-        </div>
-        ${a[3]?`<div class="activity-cost">${a[3]}</div>`:''}
-      </div>`).join('')}
+      <div class="summary-section-title">🎯 Suggested Activities</div>
+      ${displayActs.map(a=>{
+        const [dest,act,kids,cost,advance,notes]=[...a,...Array(6).fill('')];
+        const tags=[];
+        if(kids&&kids.includes('Perfect'))tags.push(`<span style="font-size:9px;background:rgba(168,85,247,.15);color:#d8b4fe;padding:1px 5px;border-radius:6px">👨‍👩‍👧 Kids</span>`);
+        if(cost&&cost.includes('Free'))tags.push(`<span style="font-size:9px;background:var(--green-dim);color:#6ee7b7;padding:1px 5px;border-radius:6px">Free</span>`);
+        if(advance&&advance.toLowerCase().includes('yes'))tags.push(`<span style="font-size:9px;background:var(--red-dim);color:#fca5a5;padding:1px 5px;border-radius:6px">Book ahead</span>`);
+        return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px">
+            <div style="font-size:13px;font-weight:600">${act}</div>
+            ${cost?`<div style="font-size:11px;color:var(--amber);flex-shrink:0;font-weight:600">${cost}</div>`:''}
+          </div>
+          ${tags.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">${tags.join('')}</div>`:''}
+          ${notes?`<div style="font-size:11px;color:var(--muted);line-height:1.5">${notes}</div>`:''}
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
-  // Photography
-  if(photos.length){
+  // Suggested Photography (rich)
+  if(countryPhotos.length){
     html+=`<div class="summary-section">
-      <div class="summary-section-title">📷 Photo Goals</div>
-      ${photos.map(p=>`<div class="photo-teaser">
-        <div class="photo-teaser-icon">${p[1]||'📸'}</div>
-        <div class="photo-teaser-text">
-          <strong>${p[2]||''}</strong><br>
-          ${p[3]||''}
-          ${p[4]?`<br><span class="photo-teaser-lens">${p[4]}</span>`:''}
-        </div>
-      </div>`).join('')}
+      <div class="summary-section-title">📷 Suggested Photography</div>
+      ${countryPhotos.map(p=>{
+        const [loc,type,subject,bestTime,lens,settings,spot,,notes]=[...p,...Array(9).fill('')];
+        const isPriority=(notes||'').includes('🔴');
+        return`<div style="background:var(--surface);border:1px solid ${isPriority?'rgba(239,68,68,.3)':' var(--border)'};border-radius:10px;padding:10px 12px;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:16px">${type||'📸'}</span>
+            ${isPriority?`<span style="font-size:9px;background:rgba(239,68,68,.2);color:#fca5a5;padding:1px 6px;border-radius:8px;font-weight:600">🔴 Priority</span>`:''}
+            ${bestTime?`<span style="font-size:10px;color:var(--amber)">⏰ ${bestTime.substring(0,30)}</span>`:''}
+          </div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px">${subject}</div>
+          ${lens?`<span style="display:inline-block;background:var(--amber-dim);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:10px;color:var(--amber);font-weight:600;margin-bottom:3px">${lens}</span>`:''}
+          ${settings?`<div style="font-size:11px;color:var(--muted);line-height:1.5">${settings}</div>`:''}
+          ${spot?`<div style="font-size:11px;color:var(--blue);margin-top:3px">📍 ${spot}</div>`:''}
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
-  // Food
+  // Suggested Food (rich)
   if(foods.length){
     html+=`<div class="summary-section">
-      <div class="summary-section-title">🍽️ Eat Today</div>
-      ${foods.map(f=>`<div class="food-teaser">
-        <div class="food-item">${f[1]||''}</div>
-        ${f[2]?`<div class="food-tip">💚 ${f[2]}</div>`:''}
-        ${f[3]?`<div class="food-tip" style="color:var(--amber)">⭐ ${f[3]}</div>`:''}
-      </div>`).join('')}
+      <div class="summary-section-title">🍽️ Suggested Food</div>
+      ${foods.map(f=>{
+        const [dest,item,cheap,mustdo,avoid,,tips]=[...f,...Array(7).fill('')];
+        return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:5px">${item}</div>
+          ${cheap?`<div style="font-size:11px;color:var(--green);margin-bottom:3px">💚 Cheap option: ${cheap}</div>`:''}
+          ${mustdo?`<div style="font-size:11px;color:var(--amber);margin-bottom:3px">⭐ Must try: ${mustdo}</div>`:''}
+          ${avoid?`<div style="font-size:11px;color:#fca5a5;margin-bottom:3px">✗ Avoid: ${avoid}</div>`:''}
+          ${tips?`<div style="font-size:11px;color:var(--muted);font-style:italic;background:var(--surface2);border-radius:6px;padding:5px 8px;margin-top:4px;line-height:1.5">${tips}</div>`:''}
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
   // Walk teaser
   if(walkSteps.length){
     html+=`<div class="summary-section">
-      <div class="summary-section-title">🗺️ Walk / Ride</div>
-      <div class="walk-teaser">
-        ${walkSteps.slice(0,3).map(s=>`<div class="walk-step">
-          <div class="walk-time">${s[1]||''}</div>
-          <div class="walk-text"><strong>${s[2]||''}</strong>${s[3]?`<br><span style="color:var(--muted)">${s[3].substring(0,80)}${s[3].length>80?'…':''}</span>`:''}</div>
+      <div class="summary-section-title">🗺️ Walk / Ride Suggestion</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+        ${walkSteps.map(s=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="font-size:10px;color:var(--amber);font-weight:600;min-width:50px;flex-shrink:0;padding-top:1px">${s[1]||''}</div>
+          <div>
+            <div style="font-size:12px;font-weight:600">${s[2]||''}</div>
+            ${s[3]?`<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:1px">${s[3].substring(0,90)}${s[3].length>90?'…':''}</div>`:''}
+            ${s[5]?`<div style="font-size:10px;color:var(--green);margin-top:2px">🍴 ${s[5]}</div>`:''}
+          </div>
         </div>`).join('')}
-        <div style="text-align:center;padding-top:6px;font-size:11px;color:var(--muted)">See full route in Walks & Rides →</div>
+        <div style="text-align:center;padding-top:8px;font-size:11px;color:var(--muted)">See full route in More → Walks & Rides</div>
       </div>
     </div>`;
   }
@@ -742,9 +764,6 @@ function showMode(mode){
     } else {
       renderDaySummary(todayDay+1,false);
     }
-  } else if(mode==='calendar'){
-    document.getElementById('calendar-view').style.display='block';
-    renderCalendar();
   } else if(mode==='full'){
     document.getElementById('content').style.display='block';
     renderFullTrip();
@@ -755,75 +774,8 @@ function setActiveBtn(mode){
   document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
   if(mode==='today')document.getElementById('btn-today').classList.add('active');
   else if(mode==='tomorrow')document.getElementById('btn-tomorrow').classList.add('active');
-  else if(mode==='calendar')document.getElementById('btn-calendar').classList.add('active');
   else if(mode==='full')document.getElementById('btn-full').classList.add('active');
 }
-
-// ── CALENDAR ─────────────────────────────────────────────────────────────────
-function renderCalendar(){
-  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-month-label').textContent=`${months[calMonth]} ${calYear}`;
-
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  document.getElementById('cal-day-labels').innerHTML=days.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
-
-  const first=new Date(calYear,calMonth,1).getDay();
-  const total=new Date(calYear,calMonth+1,0).getDate();
-  const today=new Date();
-  const todayDay=getTodayDayNum();
-
-  // Build trip day lookup
-  const tripDayMap={};
-  (allData.itin||[]).slice(1).forEach(r=>{
-    if(!r[0]||!r[1])return;
-    const d=new Date(calYear,calMonth,1);
-    // Parse date from col A e.g. "Wed 27 May"
-    const parts=(r[0]||'').split(' ');
-    const dayNum=parseInt(parts[1]);
-    const monthMap={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    const monthNum=monthMap[parts[2]];
-    if(!isNaN(dayNum)&&monthNum===calMonth)tripDayMap[dayNum]=r;
-  });
-
-  let html='';
-  for(let i=0;i<first;i++)html+=`<div class="cal-day empty"></div>`;
-  for(let d=1;d<=total;d++){
-    const row=tripDayMap[d];
-    const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
-    const isSelected=selectedCalDay===d&&calMonth===calMonth;
-    const isPast=new Date(calYear,calMonth,d)<new Date(today.setHours(0,0,0,0));
-    const color=row?getCountryColor(row[2]):'';
-    const cls=row?(isSelected?'cal-day selected':isToday?'cal-day today':`cal-day trip-day${isPast?' past':''}`):'cal-day empty';
-    html+=`<div class="${cls}" style="${row&&!isSelected&&!isToday?`background:${color}44;border-color:${color}88`:''}" onclick="${row?`calSelectDay(${d})`:''}">
-      ${d}${row&&!isSelected?`<div class="cal-day-dot"></div>`:''}
-    </div>`;
-  }
-  document.getElementById('cal-grid').innerHTML=html;
-}
-
-function calSelectDay(d){
-  selectedCalDay=d;
-  const monthMap={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-  const matchRow=(allData.itin||[]).slice(1).find(r=>{
-    const parts=(r[0]||'').split(' ');
-    const dayNum=parseInt(parts[1]);
-    const mn=monthMap[parts[2]];
-    return dayNum===d&&mn===calMonth;
-  });
-  if(matchRow){
-    selectedCalDay=d;
-    renderCalendar();
-    const tripDay=parseInt(matchRow[1]);
-    document.getElementById('calendar-view').style.display='none';
-    document.getElementById('content').style.display='none';
-    renderDaySummary(tripDay,false);
-    const backBtn=`<button onclick="showMode('calendar')" style="display:block;margin:0 12px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--text);cursor:pointer;width:calc(100% - 24px);font-family:DM Sans,sans-serif">\u2190 Back to Calendar</button>`;
-    document.getElementById('day-summary').insertAdjacentHTML('afterbegin',backBtn);
-  }
-}
-
-function calPrev(){if(calMonth===0){calMonth=11;calYear--;}else calMonth--;renderCalendar()}
-function calNext(){if(calMonth===11){calMonth=0;calYear++;}else calMonth++;renderCalendar()}
 
 // ── BOOKINGS ──────────────────────────────────────────────────────────────────
 function renderBookings(){
@@ -1168,7 +1120,7 @@ function setSovFilter(val){sovFilter=val;renderSouvenirs()}
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 function switchTab(name){
   // Hide trip UI
-  ['countdown-block','day-summary','content','calendar-view'].forEach(id=>{
+  ['countdown-block','day-summary','content'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.style.display='none';
   });
