@@ -494,7 +494,7 @@ function renderDaySummaryContent(row, isDemo, dayNum){
   const [date,day,country,location,transport,localTime,brisbaneTime,accom,ref,alerts,weather,rest]=[...row,...Array(12).fill('')];
   const color=getCountryColor(country);
   const flag=getFlagEmoji(country);
-  const todayDayNum=getTodayDayNumber();
+  const todayDayNum=getTodayDayNum();
 
   // Get photos for this location
   const photos=(allData.photos||[]).slice(1).filter(r=>{
@@ -522,7 +522,7 @@ function renderDaySummaryContent(row, isDemo, dayNum){
   let walkSteps=[];
   let inWalk=false;
   for(const r of walks){
-    const stop=r[2]||'';
+    const stop=r[0]||'';
     if(stop.startsWith('═')){
       const title=stop.replace(/═/g,'').toLowerCase();
       inWalk=title.includes(locFirst)&&locFirst.length>3;
@@ -803,30 +803,21 @@ function renderCalendar(){
 
 function calSelectDay(d){
   selectedCalDay=d;
-  // Find the trip day number
-  const row=Object.values((allData.itin||[]).slice(1).reduce((acc,r)=>{
-    const parts=(r[0]||'').split(' ');
-    const dayNum=parseInt(parts[1]);
-    const monthMap={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    const monthNum=monthMap[parts[2]];
-    if(!isNaN(dayNum)&&monthNum===calMonth)acc[dayNum]=r;
-    return acc;
-  },{}))[d-1];
-
+  const monthMap={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   const matchRow=(allData.itin||[]).slice(1).find(r=>{
     const parts=(r[0]||'').split(' ');
     const dayNum=parseInt(parts[1]);
-    const monthMap={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    return parseInt(parts[1])===d&&monthMap[parts[2]]===calMonth;
+    const mn=monthMap[parts[2]];
+    return dayNum===d&&mn===calMonth;
   });
-
   if(matchRow){
+    selectedCalDay=d;
     renderCalendar();
     const tripDay=parseInt(matchRow[1]);
     document.getElementById('calendar-view').style.display='none';
+    document.getElementById('content').style.display='none';
     renderDaySummary(tripDay,false);
-    // Add back button
-    const backBtn=`<button onclick="showMode('calendar')" style="display:block;margin:0 12px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--text);cursor:pointer;width:calc(100% - 24px);font-family:DM Sans,sans-serif">← Back to Calendar</button>`;
+    const backBtn=`<button onclick="showMode('calendar')" style="display:block;margin:0 12px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--text);cursor:pointer;width:calc(100% - 24px);font-family:DM Sans,sans-serif">\u2190 Back to Calendar</button>`;
     document.getElementById('day-summary').insertAdjacentHTML('afterbegin',backBtn);
   }
 }
@@ -974,13 +965,13 @@ function renderFood(){
 
 // ── WALKS ─────────────────────────────────────────────────────────────────────
 function renderWalks(){
-  const rows=(allData.walks||[]);
+  const rows=(allData.walks||[]).slice(2); // skip title+header rows
   const cities={};
   let currentCity='';
   let currentRoute='';
 
   rows.forEach((r,i)=>{
-    const stop=r[2]||'';
+    const stop=r[0]||'';
     if(stop.startsWith('═')){
       const title=stop.replace(/═/g,'').trim();
       // Extract city name from title
